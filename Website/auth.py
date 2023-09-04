@@ -1,33 +1,65 @@
-# import dbus
 from flask import Blueprint, render_template, request, flash,redirect,url_for
-from .models import User
 import re
+from .models import User
 from . import db
 from werkzeug.security import generate_password_hash,check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
+import sqlite3
+
+
+# def get_db():
+#     conn = sqlite3.connect('/home/dckapl108/Desktop/Files/python/Flask Projects/Login Signup/instance/database.db')
+#     c = conn.cursor()
+#     return c
+
+
 
 auth = Blueprint('auth',__name__)
 
 email_pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
 
+
+# def get_username(email):
+#     c = get_db()
+#     c.execute("select userName from user where email = '" + email + "'")
+#     userName = (c.fetchall())
+#     print(userName)
+#     c.close()
 @auth.route('/login', methods =['GET','POST'])
 def login():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
 
+        # def get_username(email):
+        #     c = get_db()
+        #     c.execute("select userName from user where email =  email ")
+        #     userName = (c.fetchone())
+        #     print(userName[0])
+        #     c.close()
+        # get_username(email)
         user = User.query.filter_by(email=email).first()
         if user:
+
             if check_password_hash(user.password,password):
-                flash("Logged in Successfully!",category='sucess')
+                flash(f"Logged in Successfully!",category='sucess')
                 login_user(user,remember=True)
-                return redirect(url_for('views.homeView'))
+
+                # for fetch the username after login
+                conn1 = sqlite3.connect('/home/dckapl108/Desktop/Files/python/Flask Projects/Login Signup/instance/database.db')
+                c1 = conn1.cursor()
+                c1.execute("select userName from user where email =  email ")
+                userName = (c1.fetchone())
+                print(userName[0])
+                conn1.close()
+
+                return redirect(url_for('views.homeView',userName=userName))
             else:
                 flash('Incorrect Password :(, Try Again',category='error')
         else:
-            flash('Email Does not exist',category='error')
+            flash('Email does not exist',category='error')
 
-    return render_template('login.html', boolean = True)
+    return render_template('login.html', boolean = True,user=current_user)
 
 @auth.route('/logout')
 @login_required
@@ -50,10 +82,6 @@ def sign_up():
             flash("Hey Your Email is too short. Email Must be greater than 5", category='error' )
         elif len(userName) <2:
             flash("Hey Your Name is too short.", category='error' )
-        elif  not not re.match(r'^[a-zA-Z]+$', userName):
-            flash("User Name should Contains one  Upper and Lower Case Letter", category='error')
-        elif  not re.search(r'[_-]', userName):
-            flash("User Name should Contains underscore or Hyphen  ", category='error')
         elif len(password) < 8:
             flash("Password Must be at Least 7 Character", category='error' )
         elif not re.search(r'[A-Z]',password):
@@ -73,4 +101,4 @@ def sign_up():
             flash("Account Created Successfully!",category='sucess')
             return redirect(url_for("views.homeView"))
 
-    return render_template('sign_up.html')
+    return render_template('sign_up.html',user=current_user)

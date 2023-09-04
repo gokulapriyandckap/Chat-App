@@ -9,13 +9,10 @@ DB_NAME = "database.db"
 
 def create_app():
     app = Flask(__name__)
+    app.config['DEBUG'] = True
     app.config['SECRET_KEY'] = 'g'
     app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///' + DB_NAME
     db.init_app(app)
-
-    login_manager = LoginManager()
-    login_manager.login_view = 'auth.login'
-    login_manager.init_app(app)
 
     from .views import views
     from .auth import auth
@@ -23,7 +20,14 @@ def create_app():
     app.register_blueprint(views, url_prefix='/')
     app.register_blueprint(auth, url_prefix='/')
 
-    from .models import User
+    # app.register_blueprint(main)
+
+    if __name__ == 'main':
+        app.run(debug=True)
+
+
+    from .models import User, messages_table
+
 
     with app.app_context():
         create_database()

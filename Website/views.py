@@ -22,8 +22,8 @@ def homeView():
             db.session.commit()
             flash("Message sent Successfully", category="success")
 
-        # print(userName)
-    return render_template("home.html", user=current_user)#userName=userName)
+        print(userName)
+    return render_template("home.html", user=current_user,userName=userName)
 
 
 

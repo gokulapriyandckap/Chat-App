@@ -40,7 +40,6 @@ def login():
         # get_username(email)
         user = User.query.filter_by(email=email).first()
         if user:
-
             if check_password_hash(user.password,password):
                 flash(f"Logged in Successfully!",category='sucess')
                 login_user(user,remember=True)
